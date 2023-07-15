@@ -3,7 +3,9 @@ package com.miao.juc.day6;
 import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 /**
@@ -16,6 +18,21 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  * 了连接的创建和关闭时间，也实现了连接的重用，不至于让庞大的连接数压垮数据库。
  */
 public class FlyweightPattern {
+
+    public static void main(String[] args) {
+        Pool pool = new Pool(2);
+        for (int i = 0; i < 5; i++) {
+            new Thread(() -> {
+                Connection connection = pool.borrow();
+                try {
+                    TimeUnit.SECONDS.sleep(new Random().nextInt());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                pool.free(connection);
+            }).start();
+        }
+    }
 }
 
 class Pool {
@@ -35,7 +52,7 @@ class Pool {
         this.connections = new Connection[poolSize];
         this.states = new AtomicIntegerArray(new int[poolSize]);
         for (int i = 0; i < poolSize; i++) {
-            connections[i] = new MockConnection();
+            connections[i] = new MockConnection("连接" + (i + 1));
         }
     }
 
@@ -46,6 +63,7 @@ class Pool {
                 //获取空闲连接
                 if (states.get(i) == 0) {
                     if (states.compareAndSet(i, 0, 1)) {
+                        System.out.println("borrow" + connections[i]);
                         return connections[i];
                     }
                 }
@@ -54,6 +72,7 @@ class Pool {
             //如果没有空闲连接,当前线程等待
             synchronized (this) {
                 try {
+                    System.out.println("wait...");
                     this.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -68,6 +87,7 @@ class Pool {
             if (connections[i] == conn) {
                 states.set(i, 0);
                 synchronized (this) {
+                    System.out.println("free " + connections[i]);
                     this.notifyAll();
                 }
                 break;
@@ -79,6 +99,19 @@ class Pool {
 
 
 class MockConnection implements Connection {
+
+    private String name;
+
+    public MockConnection(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "MockConnection{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 
     @Override
     public Statement createStatement() throws SQLException {
