@@ -67,12 +67,13 @@ class Pool {
         for (int i = 0; i < poolSize; i++) {
             if (connections[i] == conn) {
                 states.set(i, 0);
+                synchronized (this) {
+                    this.notifyAll();
+                }
                 break;
             }
         }
-        synchronized (this) {
-            this.notifyAll();
-        }
+
     }
 }
 
