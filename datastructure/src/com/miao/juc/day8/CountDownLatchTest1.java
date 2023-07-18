@@ -11,8 +11,8 @@ public class CountDownLatchTest1 {
             try {
                 System.out.println("t1 begin ....");
                 TimeUnit.SECONDS.sleep(1);
-                latch.countDown();
                 System.out.println("t1 end.... " + latch.getCount());
+                latch.countDown();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -21,9 +21,9 @@ public class CountDownLatchTest1 {
         new Thread(()->{
             try {
                 System.out.println("t2 begin ....");
-                TimeUnit.SECONDS.sleep(1);
-                latch.countDown();
+                TimeUnit.SECONDS.sleep(2);
                 System.out.println("t2 end.... " + latch.getCount());
+                latch.countDown();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -32,9 +32,9 @@ public class CountDownLatchTest1 {
         new Thread(()->{
             try {
                 System.out.println("t3 begin ....");
-                TimeUnit.SECONDS.sleep(1);
-                latch.countDown();
+                TimeUnit.SECONDS.sleep(0);
                 System.out.println("t3 end.... " + latch.getCount());
+                latch.countDown();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
